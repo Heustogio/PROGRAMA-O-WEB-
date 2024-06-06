@@ -1,0 +1,117 @@
+/*
+* Curso de Engenharia de Software - UniEVANGÉLICA 
+* Disciplina de Programação Web 
+* Dev: Heustógio Silva Santos  
+* DATA 06/06/2024
+*/ 
+
+1. Recuperar a lista de carros
+
+[
+    {
+        "id": 1,
+        "marca": "Toyota",
+        "modelo": "Corolla",
+        "ano": 2020
+    },
+    {
+        "id": 2,
+        "marca": "Honda",
+        "modelo": "Civic",
+        "ano": 2019
+    }
+]
+
+2. Criar um novo carro
+
+{
+    "marca": "Ford",
+    "modelo": "Mustang",
+    "ano": 2021
+}
+
+3. Recuperar informações de um carro específico por ID
+
+{
+    "id": 1,
+    "marca": "Toyota",
+    "modelo": "Corolla",
+    "ano": 2020
+}
+
+4. Atualizar informações de um carro específico por ID
+
+{
+    "marca": "Toyota",
+    "modelo": "Corolla",
+    "ano": 2022
+}
+
+5. Excluir um carro específico por ID
+
+{
+    "message": "Carro com ID 1 excluído com sucesso."
+}
+
+
+
+
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Banco de dados em memória para os carros
+carros = [
+    {"id": 1, "marca": "Toyota", "modelo": "Corolla", "ano": 2020},
+    {"id": 2, "marca": "Honda", "modelo": "Civic", "ano": 2019}
+]
+
+# Função para encontrar um carro por ID
+def encontrar_carro(car_id):
+    return next((car for car in carros if car["id"] == car_id), None)
+
+# Recuperar a lista de carros
+@app.route('/api/cars', methods=['GET'])
+def get_cars():
+    return jsonify(carros)
+
+# Criar um novo carro
+@app.route('/api/cars', methods=['POST'])
+def create_car():
+    novo_carro = request.json
+    novo_carro["id"] = len(carros) + 1
+    carros.append(novo_carro)
+    return jsonify(novo_carro), 201
+
+# Recuperar informações de um carro específico por ID
+@app.route('/api/cars/<int:car_id>', methods=['GET'])
+def get_car(car_id):
+    carro = encontrar_carro(car_id)
+    if carro:
+        return jsonify(carro)
+    else:
+        return jsonify({"message": "Carro não encontrado"}), 404
+
+# Atualizar informações de um carro específico por ID
+@app.route('/api/cars/<int:car_id>', methods=['PUT'])
+def update_car(car_id):
+    carro = encontrar_carro(car_id)
+    if carro:
+        dados = request.json
+        carro.update(dados)
+        return jsonify(carro)
+    else:
+        return jsonify({"message": "Carro não encontrado"}), 404
+
+# Excluir um carro específico por ID
+@app.route('/api/cars/<int:car_id>', methods=['DELETE'])
+def delete_car(car_id):
+    carro = encontrar_carro(car_id)
+    if carro:
+        carros.remove(carro)
+        return jsonify({"message": f"Carro com ID {car_id} excluído com sucesso."})
+    else:
+        return jsonify({"message": "Carro não encontrado"}), 404
+
+if __name__ == '__main__':
+    app.run(debug=True)
